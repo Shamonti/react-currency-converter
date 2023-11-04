@@ -3,42 +3,67 @@
 import { useEffect, useState } from 'react';
 
 export default function App() {
-  const [amount, setAmount] = useState(null);
-  const [output, setOutput] = useState(null);
+  const [amount, setAmount] = useState(1);
+  const [output, setOutput] = useState('');
+  const [fromCurr, setFromCurr] = useState('EUR');
+  const [toCurr, setToCurr] = useState('USD');
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(
     function () {
-      async function fetchConversion() {
+      async function convert() {
+        setIsLoading(true);
+
         const res = await fetch(
-          `https://api.frankfurter.app/latest?amount=${amount}&from=EUR&to=USD`
+          `https://api.frankfurter.app/latest?amount=${amount}&from=${fromCurr}&to=${toCurr}`
         );
         const data = await res.json();
-        setOutput(data.rates.USD);
-      }
-      fetchConversion();
-    },
-    [amount]
-  );
+        setOutput(data.rates[toCurr]);
 
-  const handleChange = function (e) {
-    setAmount(e.target.value);
-  };
+        setIsLoading(false);
+      }
+      if (fromCurr === toCurr) return setOutput(amount);
+
+      convert();
+    },
+    [amount, fromCurr, toCurr]
+  );
 
   return (
     <div>
-      <input type='text' onChange={handleChange} />
-      <select>
+      <input
+        type='text'
+        value={amount}
+        onChange={e => setAmount(Number(e.target.value))}
+        disabled={isLoading}
+      />
+      <select
+        value={fromCurr}
+        onChange={e => setFromCurr(e.target.value)}
+        disabled={isLoading}
+      >
         <option value='USD'>USD</option>
+        <option value='EUR' selected>
+          EUR
+        </option>
+        <option value='CAD'>CAD</option>
+        <option value='INR'>INR</option>
+      </select>
+      <select
+        value={toCurr}
+        onChange={e => setToCurr(e.target.value)}
+        disabled={isLoading}
+      >
+        <option value='USD' selected>
+          USD
+        </option>
         <option value='EUR'>EUR</option>
         <option value='CAD'>CAD</option>
         <option value='INR'>INR</option>
       </select>
-      <select>
-        <option value='USD'>USD</option>
-        <option value='EUR'>EUR</option>
-        <option value='CAD'>CAD</option>
-        <option value='INR'>INR</option>
-      </select>
-      <p>OUTPUT: {output}</p>
+      <p>
+        {output} {toCurr}
+      </p>
     </div>
   );
 }
